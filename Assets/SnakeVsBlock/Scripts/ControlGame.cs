@@ -4,17 +4,45 @@ using UnityEngine;
 
 public class ControlGame : MonoBehaviour
 {
-    public float Sense;
-    public Transform Player;
-    private Vector3 _previousMousePosition;
+    public float moveSpeed = 5f;
+
+    private Transform playerTransform;
+    private bool isMouseButtonDown = false;
+    private float mouseDownX;
+
+    public Rigidbody Rigidbody;
+    public Vector3 Force;
+
+    private void FixedUpdate()
+    {
+        Rigidbody.AddForce(Force, ForceMode.Force);
+    }
+
+    void Start()
+    {
+        playerTransform = GetComponent<Transform>();
+    }
 
     void Update()
     {
-        if (Input.GetMouseButton(0))
+        Vector3 currentPosition = playerTransform.position;
+
+        if (Input.GetMouseButtonDown(0))
         {
-            Vector3 delta = Input.mousePosition - _previousMousePosition;
-            Player.Rotate(-delta.y * Sense, 0, 0);
+            isMouseButtonDown = true;
+            mouseDownX = Input.mousePosition.z;
         }
-        _previousMousePosition = Input.mousePosition;
+        else if (Input.GetMouseButtonUp(0))
+        {
+            isMouseButtonDown = false;
+        }
+
+        if (isMouseButtonDown)
+        {
+            float mouseDeltaX = Input.mousePosition.z - mouseDownX;
+            currentPosition.z += mouseDeltaX * moveSpeed * Time.deltaTime;
+        }
+
+        playerTransform.position = currentPosition;
     }
 }
