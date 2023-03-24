@@ -4,11 +4,8 @@ using UnityEngine;
 
 public class ControlGame : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-
-    private Transform playerTransform;
-    private bool isMouseButtonDown = false;
-    private float mouseDownX;
+    private Vector3 initialPosition;
+    private bool isDragging = false;
 
     public Rigidbody Rigidbody;
     public Vector3 Force;
@@ -18,31 +15,25 @@ public class ControlGame : MonoBehaviour
         Rigidbody.AddForce(Force, ForceMode.Force);
     }
 
-    void Start()
-    {
-        playerTransform = GetComponent<Transform>();
-    }
-
     void Update()
     {
-        Vector3 currentPosition = playerTransform.position;
-
         if (Input.GetMouseButtonDown(0))
         {
-            isMouseButtonDown = true;
-            mouseDownX = Input.mousePosition.z;
+            initialPosition = Input.mousePosition;
+            isDragging = true;
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            isMouseButtonDown = false;
+            isDragging = false;
         }
 
-        if (isMouseButtonDown)
+        if (isDragging)
         {
-            float mouseDeltaX = Input.mousePosition.z - mouseDownX;
-            currentPosition.z += mouseDeltaX * moveSpeed * Time.deltaTime;
-        }
+            Vector3 currentPosition = Input.mousePosition;
+            Vector3 difference = currentPosition - initialPosition;
 
-        playerTransform.position = currentPosition;
+            float speed = 0.001f;
+            transform.position += new Vector3(0, 0, -difference.x * speed);
+        }
     }
 }

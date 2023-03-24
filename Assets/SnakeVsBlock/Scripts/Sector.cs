@@ -9,7 +9,7 @@ namespace Assets.Scripts.HelixJump
         {
             if (other.TryGetComponent(out Player player))
             {
-                player.CurrentSector = this;
+                player.Died();
             }
         }
     }
