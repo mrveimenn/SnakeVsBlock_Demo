@@ -33,7 +33,7 @@ public class ControlGame : MonoBehaviour
             Vector3 difference = currentPosition - initialPosition;
 
             float speed = 0.001f;
-            transform.position += new Vector3(0, 0, -difference.x * speed);
+            transform.position += new Vector3(0, 0, -difference.x * speed / 2);
         }
     }
 }
