@@ -18,7 +18,7 @@ public class Progress : MonoBehaviour
 
     private void Update()
     {
-        _currentY = Mathf.Min(_currentY, Player.transform.position.x);
+        _currentY = Mathf.Max(_currentY, Player.transform.position.x);
         float finishY = Finish.position.x;
 
         float t = Mathf.InverseLerp(_startY, finishY + FinishPlayerDisstance, _currentY);
