@@ -1,49 +1,110 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Snake : MonoBehaviour
 {
-    public GameObject snakeSegmentPrefab;
-    public int initialSnakeLength = 3;
-    public GameObject food;
+    public Transform SnakeHead;
+    public float CircleDiameter;
+    public float CollisionInterval = 0.2f;
+    public Text hitpointText;
+    public Player Player;
+    public ParticleSystem ParticleSystem;
+    public ParticleSystem BoomSystem;
+    public int Hitpoints { get; private set; }
 
-    public List<Transform> segments = new List<Transform>();
+    private List<Transform> snakeCircles = new List<Transform>();
+    private List<Vector3> positions = new List<Vector3>();
+    private float collisionTimer = 0;
 
-    private List<Vector2> snakeSegments = new List<Vector2>();
-
-    private void Start()
+    void Start()
     {
-        for (int i = 0; i < initialSnakeLength; i++)
+        positions.Add(SnakeHead.position);
+        //Hitpoints = 1;
+        int startHitpoints = SnakeProgress.SnakeLength != -1 ? SnakeProgress.SnakeLength : SnakeProgress.InitialSnakeLength;
+        for (int i = 0; i < startHitpoints; i++)
         {
-            snakeSegments.Add(new Vector2(i, 0));
-            Instantiate(snakeSegmentPrefab, new Vector3(i, 0, 0), Quaternion.identity);
+            AddCircle();
         }
     }
 
-    private void Update()
+    void Update()
     {
-        if (food != null && Vector3.Distance(transform.position, food.transform.position) < 0.5f)
+        collisionTimer -= Time.deltaTime;
+
+        float distance = (SnakeHead.position - positions[0]).magnitude;
+
+        if (distance > CircleDiameter)
         {
-            Destroy(food);
-            AddSegment();
+            Vector3 direction = (SnakeHead.position - positions[0]).normalized;
+
+            positions.Insert(0, positions[0] + direction * CircleDiameter);
+            positions.RemoveAt(positions.Count - 1);
+
+            distance -= CircleDiameter;
         }
 
-        for (int i = 0; i < snakeSegments.Count; i++)
+        for (int i = 0; i < snakeCircles.Count; i++)
         {
-            GameObject segmentObject = GetSnakeSegmentObject(i);
-            segmentObject.transform.position = new Vector3(snakeSegments[i].x, snakeSegments[i].y, 0);
+            snakeCircles[i].position = Vector3.Lerp(positions[i + 1], positions[i], distance / CircleDiameter);
         }
     }
 
-    private void AddSegment()
+    public void AddCircle()
     {
-        GameObject newSegmentObject = Instantiate(snakeSegmentPrefab, transform.position, Quaternion.identity);
-        segments.Add(newSegmentObject.transform);
+        Hitpoints++;
+        hitpointText.text = (Hitpoints + 1).ToString();
+        Transform circle = Instantiate(SnakeHead, positions[positions.Count - 1], Quaternion.identity, transform);
+        snakeCircles.Add(circle);
+        positions.Add(circle.position);
     }
 
-    private GameObject GetSnakeSegmentObject(int index)
+    public void RemoveCircle()
     {
-        return transform.GetChild(index).gameObject;
+        int lastIndex = snakeCircles.Count - 1;
+        
+        if (snakeCircles.Count == 0)
+        {
+            Destroy(gameObject);
+            Player.Died();
+        }
+        else
+        {
+            Hitpoints--;
+            hitpointText.text = (Hitpoints + 1).ToString();
+            Destroy(snakeCircles[lastIndex].gameObject);
+            snakeCircles.RemoveAt(lastIndex);
+            positions.RemoveAt(lastIndex+1);
+        }
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.TryGetComponent(out Food food))
+        {
+            for (int i = 0; i < food.Amount; i++)
+            {
+                AddCircle();
+            }
+
+            SnakeProgress.SnakeLength = Hitpoints;
+            Destroy(other.gameObject);
+        }
+    }
+
+    private void OnCollisionStay(Collision other)
+    {
+        if (collisionTimer <= 0 && other.gameObject.TryGetComponent(out Block block))
+        {
+            ParticleSystem.Play();
+            block.ApplyDamage();
+            RemoveCircle();
+            collisionTimer = CollisionInterval;
+
+            SnakeProgress.SnakeLength = Hitpoints;
+            if (block.Hitpoints == 0)
+                BoomSystem.Play();
+        }
     }
 }
