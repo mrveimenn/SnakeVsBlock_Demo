@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Block : MonoBehaviour
 {
     public Text hitpointText;
-    public ParticleSystem BoomSystem;
+    public ParticleSystem DeadParticle;
     public int Hitpoints { get; private set; }
     public int MaxHitpoints { get { return maxHitpoints;} }
 

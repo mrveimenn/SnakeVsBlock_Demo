@@ -10,18 +10,27 @@ public class Snake : MonoBehaviour
     public float CollisionInterval = 0.2f;
     public Text hitpointText;
     public Player Player;
-    public ParticleSystem ParticleSystem;
-    public ParticleSystem BoomSystem;
+    public ParticleSystem DamageParticle;
+    public ParticleSystem DeadParticle;
+    public AudioClip TakeFood;
+    public AudioClip Damage;
+    public AudioClip Death;
+
+    private AudioSource _audio;
     public int Hitpoints { get; private set; }
 
     private List<Transform> snakeCircles = new List<Transform>();
     private List<Vector3> positions = new List<Vector3>();
     private float collisionTimer = 0;
 
+    private void Awake()
+    {
+        _audio = GetComponent<AudioSource>();
+    }
+
     void Start()
     {
         positions.Add(SnakeHead.position);
-        //Hitpoints = 1;
         int startHitpoints = SnakeProgress.SnakeLength != -1 ? SnakeProgress.SnakeLength : SnakeProgress.InitialSnakeLength;
         for (int i = 0; i < startHitpoints; i++)
         {
@@ -90,6 +99,7 @@ public class Snake : MonoBehaviour
 
             SnakeProgress.SnakeLength = Hitpoints;
             Destroy(other.gameObject);
+            _audio.PlayOneShot(TakeFood);
         }
     }
 
@@ -97,14 +107,18 @@ public class Snake : MonoBehaviour
     {
         if (collisionTimer <= 0 && other.gameObject.TryGetComponent(out Block block))
         {
-            ParticleSystem.Play();
+            DamageParticle.Play();
             block.ApplyDamage();
             RemoveCircle();
             collisionTimer = CollisionInterval;
+            _audio.PlayOneShot(Damage);
 
             SnakeProgress.SnakeLength = Hitpoints;
             if (block.Hitpoints == 0)
-                BoomSystem.Play();
+            {
+                _audio.PlayOneShot(Death);
+                DeadParticle.Play();
+            }
         }
     }
 }
