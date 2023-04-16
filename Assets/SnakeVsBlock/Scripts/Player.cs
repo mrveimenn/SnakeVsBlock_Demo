@@ -8,11 +8,12 @@ public class Player : MonoBehaviour
     public Rigidbody Rigidbody;
     public Sector CurrentSector;
     public MainGame MainGame;
-    public AudioClip AudioClip;
+    public AudioClip Finish;
+    public AudioClip Death;
 
     private AudioSource _audio;
 
-    private void Awake()
+    public void Awake()
     {
         _audio = GetComponent<AudioSource>();
     }
@@ -21,17 +22,13 @@ public class Player : MonoBehaviour
     {
         MainGame.OnPlayerReachFinish();
         Rigidbody.velocity = Vector3.zero;
-    }
-
-    public void Bounce()
-    {
-        Rigidbody.velocity = new Vector3(Speed, 0, 0);
-        _audio.Play();
+        _audio.PlayOneShot(Finish);
     }
 
     public void Died()
     {
         MainGame.OnPlayerDied();
         Rigidbody.velocity = Vector3.zero;
+        _audio.PlayOneShot(Death);
     }
 }

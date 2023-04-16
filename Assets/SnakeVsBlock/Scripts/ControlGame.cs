@@ -4,36 +4,27 @@ using UnityEngine;
 
 public class ControlGame : MonoBehaviour
 {
-    private Vector3 initialPosition;
-    private bool isDragging = false;
+    private Vector3 previousMousePosition;
 
-    public Rigidbody Rigidbody;
-    public Vector3 Force;
+    public Rigidbody player;
+    public float speed;
+    public float sense;
 
     private void FixedUpdate()
     {
-        Rigidbody.AddForce(Force, ForceMode.Force);
+        Moving(player);
+
+        if (Input.GetMouseButton(0))
+        {
+            Vector3 delta = Input.mousePosition - previousMousePosition;
+            player.velocity = new Vector3(speed, 0.0f, -delta.x * sense);
+        }
+
+        previousMousePosition = Input.mousePosition;
     }
 
-    void Update()
+    public void Moving(Rigidbody rb)
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            initialPosition = Input.mousePosition;
-            isDragging = true;
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            isDragging = false;
-        }
-
-        if (isDragging)
-        {
-            Vector3 currentPosition = Input.mousePosition;
-            Vector3 difference = currentPosition - initialPosition;
-
-            float speed = 0.001f;
-            transform.position += new Vector3(0, 0, -difference.x * speed /2);
-        }
+        rb.velocity = Vector3.right * speed;
     }
 }
